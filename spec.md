@@ -47,12 +47,17 @@ Read through the SQL file together. No running code yet.
 - [ ] ~5 events each spread across the current week
 
 ### Done when
-- `npm run dev` shows a working UI
-- Both calendars visible with events
-- Chat bar present (non-functional)
+- [x] `npm run dev` shows a working UI
+- [x] Both calendars visible with events
+- [x] Chat bar present (non-functional)
+- [x] Events positioned correctly by time with 15-minute grid resolution
+- [x] Event detail modal works
+- [x] Login/logout works for both users
 
 ### Test
 User runs `cd web && npm run dev`, opens browser, clicks around.
+
+**Status: COMPLETE ✓**
 
 ---
 
@@ -170,4 +175,4 @@ User connects MCP server to Claude, has a natural language scheduling conversati
 ---
 
 ## Current status
-**Active phase: 2 — UI (mocked data)**
+**Active phase: 3 — GraphQL API + DB**
