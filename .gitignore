@@ -1,0 +1,17 @@
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Go
+bin/
+*.exe
+
+# Node / Vite
+web/node_modules/
+web/dist/
+web/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
