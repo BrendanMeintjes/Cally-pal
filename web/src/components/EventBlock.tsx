@@ -22,7 +22,7 @@ export default function EventBlock({ event, color }: Props) {
     <>
       <button
         onClick={() => setShowDetail(true)}
-        className={`w-full text-left border-l-4 rounded px-2 py-1 text-xs cursor-pointer transition-colors ${colors[color]}`}
+        className={`w-full h-full text-left border-l-4 rounded px-2 py-1 text-xs cursor-pointer transition-colors overflow-hidden ${colors[color]}`}
       >
         <div className="font-semibold truncate">{event.title}</div>
         <div className="opacity-70">{formatTime(event.startAt)} – {formatTime(event.endAt)}</div>
