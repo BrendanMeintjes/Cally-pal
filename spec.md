@@ -3,10 +3,14 @@
 ## App summary
 Two users, each with a calendar full of events. An AI agent can be asked to find a time that works for both — "schedule us for 2 hours at my next available spot" — and it finds or creates the meeting without clashing.
 
+Two modes:
+- **Sandbox mode** — no sign-in required, uses hardcoded mock data (Alice + Bob). Good for demos and testing
+- **Real mode** — sign in with Google, pulls live Google Calendar data, books real events
+
 ---
 
 ## Phase 1 — DB Schema
-**Goal:** Agree on the data shapes before writing a line of code. Everything downstream depends on this.
+**Status: COMPLETE ✓**
 
 ### Tables
 - [x] `calendars` — id, user_id, name, timezone (default UTC), share_id
@@ -17,47 +21,24 @@ Two users, each with a calendar full of events. An AI agent can be asked to find
 - [x] Timezone stored on calendar, not on events. All times stored in UTC. Display timezone per-user later
 - [x] Cross-user access via `share_id` — agent is given both calendar share_ids to find and book mutual slots
 - [x] Agent books directly on both calendars via `scheduleMeeting`. Email invite is future work
-
-### Done when
-- [x] SQL migration file written and reviewed together
-- [x] Both agree on column names and types
 - [x] RLS policies written and verified against current Supabase docs
 - [x] Migration run in Supabase dashboard
 - [x] .env filled in with all keys
 
-### Test
-Read through the SQL file together. No running code yet.
-
-**Status: COMPLETE ✓**
-
 ---
 
-## Phase 2 — UI (mocked data)
-**Goal:** See and interact with the app in a browser. No backend, no auth — just hardcoded data and the real UI components.
-
-### Pages
-- [ ] Login page (static, no real auth yet — just a button that "logs you in")
-- [ ] Dashboard — shows two calendars side by side
-- [ ] Calendar view — weekly grid with events rendered as blocks
-- [ ] Event detail (click an event → see title, time)
-- [ ] Chat bar at the bottom — text input (no AI yet, just the UI shell)
-
-### Mock data
-- [ ] Two hardcoded users with two hardcoded calendars
-- [ ] ~5 events each spread across the current week
-
-### Done when
-- [x] `npm run dev` shows a working UI
-- [x] Both calendars visible with events
-- [x] Chat bar present (non-functional)
-- [x] Events positioned correctly by time with 15-minute grid resolution
-- [x] Event detail modal works
-- [x] Login/logout works for both users
-
-### Test
-User runs `cd web && npm run dev`, opens browser, clicks around.
-
+## Phase 2 — UI (mocked data / sandbox shell)
 **Status: COMPLETE ✓**
+
+The mock data layer built here becomes the permanent **sandbox mode** — not throwaway scaffolding.
+
+### Completed
+- [x] Login page with "Continue as Alice / Bob" (sandbox) and placeholder for Google sign-in (real mode)
+- [x] Dashboard — two calendars side by side
+- [x] Weekly grid with events positioned by time at 15-minute resolution
+- [x] Event detail modal (title, time, description, notes)
+- [x] Chat bar shell (non-functional, wired up in Phase 6)
+- [x] Mock data: 5 events per user across current week
 
 ---
 
@@ -73,25 +54,26 @@ User runs `cd web && npm run dev`, opens browser, clicks around.
 - [ ] `me` — return hardcoded user (auth comes later)
 - [ ] `calendarByShareId` — fetch calendar by share_id
 - [ ] `events(calendarId, from, to)` — fetch events in range
-- [ ] `findAvailableSlots` — the core algorithm
+- [ ] `findAvailableSlots` — the core slot-finding algorithm
 - [ ] `createCalendar` mutation
 - [ ] `createEvent` mutation
 - [ ] `deleteEvent` mutation
 - [ ] `scheduleMeeting` mutation — creates event on multiple calendars
 
 ### DB
-- [ ] Supabase project created
-- [ ] Migration run
-- [ ] `DATABASE_URL` in `.env`
-- [ ] Seed script with same mock data as Phase 2
+- [ ] `DATABASE_URL` in `.env` (find via Supabase Connect → ORMs or Direct connection tab)
+- [ ] Seed script — inserts same Alice + Bob mock data into real DB for sandbox mode
 
 ### Done when
-- `go run ./cmd/api` starts without errors
-- GraphiQL at `http://localhost:8080/playground`
-- Can run `findAvailableSlots` query and get real results
+- [x] `go run ./cmd/api` starts without errors
+- [x] GraphiQL at `http://localhost:8081/playground`
+- [x] `createCalendar` and `createEvent` mutations work
+- [x] `findAvailableSlots` returns correct gaps around real events
 
 ### Test
 User opens GraphiQL, runs queries manually.
+
+**Status: COMPLETE ✓**
 
 ---
 
@@ -101,44 +83,49 @@ User opens GraphiQL, runs queries manually.
 ### Frontend changes
 - [ ] Install urql
 - [ ] GraphQL client pointed at `http://localhost:8080/query`
-- [ ] Replace mock calendars with `calendarByShareId` query
-- [ ] Replace mock events with `events` query
+- [ ] Sandbox mode: still uses mock data (no API call)
+- [ ] Real mode: replace calendars + events with GraphQL queries
 - [ ] Chat bar calls `findAvailableSlots` and shows returned time slots
 - [ ] Confirm button on a slot calls `scheduleMeeting`
 
 ### Done when
-- Real events from DB appear in the calendar grid
+- Sandbox mode still works with mock data
+- Real mode loads events from DB
 - Typing in chat bar + submitting finds real slots
 - Clicking confirm creates real events in DB
 
 ### Test
-User runs both servers, books a meeting end to end.
+User runs both servers, books a meeting end to end in real mode.
 
 ---
 
-## Phase 5 — Auth
-**Goal:** Real users, real sessions. Each user sees only their own data.
+## Phase 5 — Auth (Google OAuth)
+**Goal:** Real users via Google sign-in. Google Calendar data pulled after OAuth.
 
-### Backend
-- [ ] Supabase Auth enabled
-- [ ] JWT middleware in Go — extract user ID from Bearer token
-- [ ] All resolvers use `auth.FromContext(ctx)` for user ID
+### Sign-in
+- [ ] Google OAuth via Supabase Auth (configured in Supabase dashboard)
+- [ ] Supabase JS client in frontend handles the OAuth redirect flow
+- [ ] JWT middleware in Go verifies Supabase-issued token via JWKS URL
 - [ ] `me` resolver returns real user from JWT
 
-### Frontend
-- [ ] Supabase JS client installed
-- [ ] Login page — real email/password sign-in via Supabase Auth
-- [ ] Auth token stored, sent as `Authorization: Bearer <token>` on every GraphQL request
-- [ ] Logout button
-- [ ] Redirect to login if not authenticated
+### Google Calendar access
+- [ ] Google Cloud Console — enable Calendar API, add calendar scope to OAuth app
+- [ ] After sign-in, exchange/store Google access token for Calendar API calls
+- [ ] Go backend fetches Google Calendar events via Calendar API (not our DB)
+- [ ] Events mapped to our `CalendarEvent` type so the UI doesn't change
+
+### Login page update
+- [ ] "Sign in with Google" button → real OAuth flow
+- [ ] "Try Sandbox Mode" button → existing Alice/Bob mock flow
+- [ ] Redirect to login if not authenticated in real mode
 
 ### Done when
-- Two separate browser sessions, two different users
-- Each sees only their own calendar on the dashboard
-- Cross-user slot finding still works via share_id
+- Two browser windows, two real Google accounts
+- Each sees their real Google Calendar events
+- Cross-user slot finding works on real calendar data
 
 ### Test
-User opens two browser windows, logs in as different users, finds a mutual slot.
+User signs in with two Google accounts, finds a mutual slot on real calendars.
 
 ---
 
@@ -149,6 +136,8 @@ User opens two browser windows, logs in as different users, finds a mutual slot.
 - [ ] `list_calendars` — agent can discover available calendars
 - [ ] `find_available_slots(calendarIds, durationMinutes, after?, rangeStart?, rangeEnd?)` — returns time slot options
 - [ ] `schedule_meeting(calendarIds, title, startAt, endAt)` — books the slot on both calendars
+- [ ] Sandbox mode: tools work against mock data
+- [ ] Real mode: tools work against Google Calendar / our DB
 
 ### Server
 - [ ] `cmd/mcp/main.go` — mcp-go with SSE transport
@@ -156,7 +145,7 @@ User opens two browser windows, logs in as different users, finds a mutual slot.
 - [ ] Deployed to Railway alongside the API
 
 ### Done when
-- MCP server running and connected to Claude (or another agent)
+- MCP server running and connected to Claude
 - Can type "find us a 2 hour slot next week" and get real options back
 - Can confirm and have it book on both calendars
 
@@ -169,10 +158,11 @@ User connects MCP server to Claude, has a natural language scheduling conversati
 - [ ] Frontend deployed to Vercel
 - [ ] API + MCP deployed to Railway
 - [ ] Supabase project on free tier
+- [ ] Google Cloud Console — OAuth app configured with correct redirect URIs for prod
 - [ ] Environment variables set in Railway + Vercel dashboards
-- [ ] Shareable link works end to end
+- [ ] Shareable link works end to end in both sandbox and real mode
 
 ---
 
 ## Current status
-**Active phase: 3 — GraphQL API + DB**
+**Active phase: 4 — Auth (Google OAuth)**

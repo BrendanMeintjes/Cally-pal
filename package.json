@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "cd web && npm run dev",
-    "build": "cd web && npm run build"
+    "build": "cd web && npm run build",
+    "api": "go run ./cmd/api"
   }
 }

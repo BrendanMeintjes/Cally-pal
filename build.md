@@ -31,7 +31,16 @@ Add to this as each phase surfaces something worth remembering.
 ---
 
 ## Phase 2 — UI (mocked data)
-_Notes will be added here during Phase 2_
+
+### Sandbox mode is permanent, not throwaway
+The mock data layer (Alice + Bob) stays in the app as a permanent **sandbox mode** — accessible from the login page without any sign-in. This serves two purposes:
+1. Demo/portfolio use — reviewer can try it immediately without a Google account
+2. Development — easier to test UI and MCP layer without real OAuth in the way
+
+The login page will have two paths: "Sign in with Google" (real mode) and "Try Sandbox Mode" (mock data).
+
+### Why `import type` is required for TypeScript interfaces in Vite
+Vite compiles TypeScript to JS at runtime. TypeScript `interface` declarations have no JS runtime representation — they're erased at compile time. If you do a regular `import { SomeInterface }`, Vite may try to resolve it as a live JS binding and fail. Using `import type { SomeInterface }` tells Vite explicitly it's a type-only import and should be erased — no runtime binding needed.
 
 ---
 

@@ -1,0 +1,69 @@
+scalar Time
+
+type User {
+  id:        ID!
+  email:     String!
+  calendars: [Calendar!]!
+}
+
+type Calendar {
+  id:       ID!
+  userId:   ID!
+  name:     String!
+  timezone: String!
+  shareId:  String!
+}
+
+type Event {
+  id:          ID!
+  calendarId:  ID!
+  title:       String!
+  description: String
+  notes:       String
+  startAt:     Time!
+  endAt:       Time!
+}
+
+type TimeSlot {
+  startAt: Time!
+  endAt:   Time!
+}
+
+type Query {
+  me: User
+
+  calendarByShareId(shareId: String!): Calendar
+
+  events(calendarId: ID!, from: Time, to: Time): [Event!]!
+
+  findAvailableSlots(
+    calendarIds:     [ID!]!
+    durationMinutes: Int!
+    after:           Time
+    rangeStart:      Time
+    rangeEnd:        Time
+  ): [TimeSlot!]!
+}
+
+type Mutation {
+  createCalendar(name: String!, timezone: String!): Calendar!
+
+  createEvent(
+    calendarId:  ID!
+    title:       String!
+    description: String
+    notes:       String
+    startAt:     Time!
+    endAt:       Time!
+  ): Event!
+
+  deleteEvent(id: ID!): Boolean!
+
+  scheduleMeeting(
+    calendarIds: [ID!]!
+    title:       String!
+    description: String
+    startAt:     Time!
+    endAt:       Time!
+  ): [Event!]!
+}
